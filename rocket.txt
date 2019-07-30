@@ -1,0 +1,56 @@
+Houndstooth Rocket
+--
+Total Mass: 					 7529.34 kg 
+Payload Mass: 				 156.4 kg 
+Total Propellant Mass: 6922.65 kg 
+Kerosene Mass: 				 2179.81 kg 
+LOx Mass: 						 4742.84 kg 
+Total Height: 				 11.72 m 
+Diameter: 						 1.05 m 
+L/D Ratio: 						 11.16 
+Stages: 							 2 
+
+Stage 1
+--
+Mass: 								 6215.15 kg 
+Thrust: 							 88960.0 N 
+T/W Ratio: 						 1.20 
+Engines: 							 4 
+Isp: 									 270 
+Burn Duration: 				 173.7 s
+Tank Height: 					 7.12 m 
+Tank Mass: 						 146.27 kg 
+Fuel Tank Height: 		 2.65 m 
+Fuel Mass: 						 1839.61 kg 
+Fuel Tank Volume: 		 2.29 m**3
+LOx Tank Height: 			 4.47 m 
+LOx Mass: 						 3998.28 kg 
+LOx Tank Volume: 			 3.69 m**3
+N2 Tank Mass: 				 23.59 kg 
+N2 Mass: 							 15.68 kg 
+Helium Tank Mass: 		 26.76 kg 
+Helium Mass: 					 3.29 kg 
+
+
+Stage 2
+--
+Mass: 								 1314.19 kg 
+Thrust: 							 26198.7 N 
+T/W Ratio: 						 2.03 
+Engines: 							 1 
+Isp: 									 318 
+Burn Duration: 				 184.4 s
+Tank Height: 					 1.50 m 
+Tank Mass: 						 29.96 kg 
+Fuel Tank Height: 		 0.49 m 
+Fuel Mass: 						 340.20 kg 
+Fuel Tank Volume: 		 0.42 m**3
+LOx Tank Height: 			 1.01 m 
+LOx Mass: 						 744.56 kg 
+LOx Tank Volume: 			 0.69 m**3
+N2 Tank Mass: 				 5.44 kg 
+N2 Mass: 							 3.92 kg 
+Helium Tank Mass: 		 5.44 kg 
+Helium Mass: 					 0.61 kg 
+
+
