@@ -1,5 +1,6 @@
 import math
 import copy
+import orbital
 from constants          import g_earth
 from functions          import tabs
 from params             import Params
@@ -121,7 +122,7 @@ class Rocket(object):
         self.position_rel.update([state_rel[0].p, state_rel[1].p, state_rel[2].p])
         self.velocity_rel.update([state_rel[0].v, state_rel[1].v, state_rel[2].v])
 
-        self.altitude   = Earth.get_lat_lon(self.position)[2]
+        self.altitude   = orbital.utilities.altitude_from_radius(self.position.magnitude(), body=orbital.earth)
         self.downrange  = self.init_position.angle(self.position_rel) * Earth.radius_equator
 
 
@@ -214,11 +215,11 @@ class Rocket(object):
 
 # Recursive
 
-def compute_max_payload(error=0.0, integral=0.0, payload=110.0):
+def compute_max_payload(error=0.0, integral=0.0, payload=100.0):
 
     gain                = 0.2
-    tau_i               = 100.0
-    new_payload         = payload + (gain * error + (gain/tau_i) * integral)
+    tau_i               = 0.001
+    new_payload         = payload + (gain * error + tau_i * integral)
     print("Error: %.2f, Integral: %.2f, Payload: %.2f" % (error,integral,new_payload))
     params              = copy.deepcopy(Params)
     odyne               = Rocket(params)
@@ -247,7 +248,7 @@ if __name__ == '__main__':
     # odyne = compute_max_payload()
 
     odyne = Rocket(Params)
-    odyne.modify_payload(117.8)
+    odyne.modify_payload(100.0)
     # # # odyne.get_specs(txt=True)
     # odyne.trajectory.optimize_pitchover()
     odyne.trajectory.simulate()

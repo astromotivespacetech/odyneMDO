@@ -1,7 +1,28 @@
 import math
+import orbital
 from constants import _u
 from earth import Earth
 from vector3d import Vector3D
+
+def keplerian_elements(position, velocity):
+
+    x = position.x
+    y = position.y
+    z = position.z
+    vx = velocity.x
+    vy = velocity.y
+    vz = velocity.z
+
+    r = orbital.utilities.Position(x,y,z)
+    v = orbital.utilities.Velocity(vx,vy,vz)
+
+    keplerian = orbital.elements.KeplerianElements.from_state_vector(r, v, body=orbital.earth)
+
+    A = keplerian.a * (1 + keplerian.e)
+    P = keplerian.a * (1 - keplerian.e)
+    alt = orbital.utilities.altitude_from_radius(position.magnitude(), body=orbital.earth)
+
+    return A, P, alt
 
 
 def keplerian_orbit(position, velocity):

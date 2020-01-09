@@ -9,6 +9,7 @@ class Earth(object):
     radius_equator          = 6378137  # meters (at equator)
     f                       = 1/298.257223563
     radius_poles            = radius_equator * (1-f)  # 6356752.314245179 meters (at poles)
+    radius                  = 6371008 # mean radius
     omega                   = 7.2921159e-5 # angular velocity [radians/second]
     center                  = Vector3D([0,0,0])
     mass                    = 5.97237e+24 # [kg]

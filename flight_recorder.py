@@ -4,7 +4,9 @@ import pandas            as pd
 import matplotlib.pyplot as plt
 from earth               import Earth
 from graphs              import *
+from pyquaternion        import Quaternion
 from rotation_matrix     import rotate_Z
+from ground_track        import calc_distance_to_horizon
 import simplekml
 
 
@@ -19,15 +21,21 @@ class FlightRecorder(object):
         self.kml        = simplekml.Kml()
 
         self.trajectory = self.kml.newlinestring(name="Trajectory")
-        self.stage1_trajectory = self.kml.newlinestring(name="Stage1 Trajectory")
-        self.fairing_trajectory = self.kml.newlinestring(name="Fairing Trajectory")
-        # self.ground_track = self.kml.newlinestring(name="Ground Track")
-        # self.ground_track.style.linestyle.color = '77000000'
+        # self.stage1_trajectory = self.kml.newlinestring(name="Stage1 Trajectory")
+        # self.fairing_trajectory = self.kml.newlinestring(name="Fairing Trajectory")
+        self.ground_track  = self.kml.newlinestring(name="Ground Track")
+        self.ground_track1 = self.kml.newlinestring(name="Ground Track 1")
+        self.ground_track2 = self.kml.newlinestring(name="Ground Track 2")
+        self.ground_track.style.linestyle.color = '77000000'
+        self.ground_track1.style.linestyle.color = '77000000'
+        self.ground_track2.style.linestyle.color = '77000000'
 
         self.trajectory.altitudemode = simplekml.AltitudeMode.relativetoground
-        self.stage1_trajectory.altitudemode = simplekml.AltitudeMode.relativetoground
-        self.fairing_trajectory.altitudemode = simplekml.AltitudeMode.relativetoground
-        # self.ground_track.altitudemode = simplekml.AltitudeMode.relativetoground
+        # self.stage1_trajectory.altitudemode = simplekml.AltitudeMode.relativetoground
+        # self.fairing_trajectory.altitudemode = simplekml.AltitudeMode.relativetoground
+        self.ground_track.altitudemode = simplekml.AltitudeMode.relativetoground
+        self.ground_track1.altitudemode = simplekml.AltitudeMode.relativetoground
+        self.ground_track2.altitudemode = simplekml.AltitudeMode.relativetoground
 
     def record_data(self, elapsed, acceleration, rocket, drag):
 
@@ -46,6 +54,7 @@ class FlightRecorder(object):
         gravity.scale(g)
         acceleration.subtract(gravity)
 
+
         data = [    elapsed,
                     acceleration.x,         acceleration.y,         acceleration.z,
                     pos_rel.x,              pos_rel.y,              pos_rel.z,
@@ -60,16 +69,42 @@ class FlightRecorder(object):
 
         if self.counter % 10.0 == 0:
             lat, lon, alt = Earth.get_lat_lon(pos_rel)
+            # lat, lon, alt = Earth.get_lat_lon(rocket.position)
+
             self.trajectory.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),round(rocket.altitude))])
+            self.ground_track.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),0)])
 
-            # self.ground_track.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),0)])
+            # if rocket.params.recover:
+            #     lat, lon, alt = Earth.get_lat_lon(s1_pos_rel)
+            #     self.stage1_trajectory.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),round(alt))])
+            #
+            #     lat, lon, alt = Earth.get_lat_lon(f_pos_rel)
+            #     self.fairing_trajectory.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),round(alt))])
 
-            if rocket.params.recover:
-                lat, lon, alt = Earth.get_lat_lon(s1_pos_rel)
-                self.stage1_trajectory.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),round(alt))])
+            if elapsed >= 10.0:
+                # ground track width
+                d, theta     = calc_distance_to_horizon(pos_rel)
+                A            = rocket.velocity_rel
+                B            = pos_rel.unit().inverse()
+                proj         = A.dot(B) / B.dot(B)
+                B.scale(proj)
+                axis         = A.difference(B)
+                q1           = Quaternion(axis=axis.points, radians=math.pi*0.5)
+                q2           = Quaternion(axis=axis.points, radians=-math.pi*0.5)
+                w            = pos_rel.unit().inverse()
+                w_prime1     = q1.rotate(w.points)
+                w_prime2     = q2.rotate(w.points)
+                vec1         = Vector3D(w_prime1)
+                vec2         = Vector3D(w_prime2)
+                vec1.scale(d)
+                vec2.scale(d)
+                vec1.add(pos_rel)
+                vec2.add(pos_rel)
 
-                lat, lon, alt = Earth.get_lat_lon(f_pos_rel)
-                self.fairing_trajectory.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),round(alt))])
+                lat, lon, alt = Earth.get_lat_lon(vec1)
+                self.ground_track1.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),0)])
+                lat, lon, alt = Earth.get_lat_lon(vec2)
+                self.ground_track2.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),0)])
 
             # self.data.loc[self.counter/10] = data
             self.data.loc[self.counter] = data

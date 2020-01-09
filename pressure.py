@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import math
 from engine                 import Hadley
 from commodities.helium     import Helium

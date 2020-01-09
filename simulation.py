@@ -1,5 +1,6 @@
 import copy
 import math
+import orbital
 from functions      import *
 from runge_kutta    import *
 from units          import *
@@ -8,7 +9,7 @@ from vector3d       import Vector3D
 from earth          import Earth
 from atmosphere     import Atmosphere
 from orbit          import Orbit
-from keplerian      import keplerian_orbit
+from keplerian      import keplerian_orbit, keplerian_elements
 from pyquaternion   import Quaternion
 from dv             import calc_dv
 
@@ -28,7 +29,8 @@ class Simulation(object):
 
         # orbital elements
         self.injection                  = Orbit(kilo2unit(self.params.injection), kilo2unit(self.params.apogee))      # injection orbit object
-        self.target_orbit               = Orbit(kilo2unit(self.params.perigee),   kilo2unit(self.params.apogee))      # targe orbit object
+        self.target_orbit               = Orbit(kilo2unit(self.params.perigee),   kilo2unit(self.params.apogee))      # target orbit object
+
         self.keplerian                  = keplerian_orbit(self.rocket.position, self.rocket.velocity)       # perigee and apogee velocity based on current state
         self.apogee                     = 0.0                                                               # tracks rocket apogee height
         self.calc_fuel_lox_resid()                                                                          # sets the residual fuel and lox mass for each stage
@@ -99,9 +101,12 @@ class Simulation(object):
             while self.check_circularization_status() == True:
                 self.update_state()
 
-            self.keplerian                  = keplerian_orbit(self.rocket.position, self.rocket.velocity)
-            perigee                         = self.keplerian[0] - Earth.radius_equator
-            apogee                          = self.keplerian[1] - Earth.radius_equator
+                # self.keplerian                  = keplerian_orbit(self.rocket.position, self.rocket.velocity)
+                # perigee                         = self.keplerian[0] - Earth.radius_equator
+                # apogee                          = self.keplerian[1] - Earth.radius_equator
+
+                self.elements = keplerian_elements(self.rocket.position, self.rocket.velocity)
+
 
 
         if geo == True:
@@ -146,6 +151,7 @@ class Simulation(object):
                 self.rocket.params.mass_ratios,
                 [self.trajectory.pitchover_angle, self.trajectory.coast_time],
                 self.rocket.orbit))
+
 
 
 
@@ -534,12 +540,13 @@ class Simulation(object):
     def check_apogee(self):
 
         self.keplerian                  = keplerian_orbit(self.rocket.position, self.rocket.velocity)
-        perigee                         = self.keplerian[0] - Earth.radius_equator
-        apogee                          = self.keplerian[1] - Earth.radius_equator
+        perigee                         = self.keplerian[0]
+        apogee                          = self.keplerian[1]
+
 
         # status
-
-        status = apogee >= self.target_orbit.apogee
+        target_apogee                   = orbital.utilities.radius_from_altitude( self.rocket.params.apogee*1000, body=orbital.earth)
+        status                          = apogee >= target_apogee
 
         # if status:
         #     print("Apogee: %f, Perigee: %f" % (apogee, perigee))
@@ -558,14 +565,13 @@ class Simulation(object):
         status                              = self.check_apogee()
 
         if status:
-            perigee                         = self.keplerian[0] - Earth.radius_equator
-            apogee                          = self.keplerian[1] - Earth.radius_equator
+            perigee                         = orbital.utilities.altitude_from_radius(self.keplerian[0], body=orbital.earth)
+            apogee                          = orbital.utilities.altitude_from_radius(self.keplerian[1], body=orbital.earth)
             self.injection                  = Orbit(perigee, apogee)
             stage                           = self.rocket.stages[self.stage]
             fuel                            = sum([tank.fuel_mass for tank in stage.tanks])
             lox                             = sum([tank.lox_mass for tank in stage.tanks])
             self.circ_fuel, self.circ_lox   = self.calc_circularization_prop()
-
 
             if fuel > self.circ_fuel + stage.fuel_resid and lox > self.circ_lox + stage.lox_resid:                   # circ_fuel and circ_lox account for engine start quantities
                 return True
@@ -578,7 +584,7 @@ class Simulation(object):
 
     def check_stage_status(self):
 
-        stage                   = self.rocket.stages[self.stage]
+        stage                               = self.rocket.stages[self.stage]
 
         # if on last stage, add circularization fuel and lox to residual
         if self.stage+1 == self.params.stages:
@@ -675,20 +681,21 @@ class Simulation(object):
         if self.rocket.altitude < self.apogee and self.circ_burn == False:
             self.rocket.stages[self.stage].throttle = self.rocket.params.throttle[self.stage]
             self.circ_burn = True
+            self.target_orbit = Orbit(self.rocket.altitude, self.rocket.altitude)      # target orbit object
+
 
         # end circularization burn once desired velocity is attained
         if self.circ_burn == True and self.rocket.velocity.magnitude() >= self.target_orbit.velocity_apogee:
             self.rocket.stages[self.stage].throttle = 0.0
-            self.circ_burn = False
+            self.circ_burn = -1
             # print(self.rocket.velocity.magnitude(), self.target_orbit.velocity_apogee)
-            # status = False
             self.keplerian                  = keplerian_orbit(self.rocket.position, self.rocket.velocity)
             # print(self.rocket.altitude, self.keplerian[1] - Earth.radius_equator)
 
         if self.rocket.stages[self.stage].prop_mass <= 0.0:
             status = False
 
-        if self.elapsed > 6000.0:
+        if self.elapsed > self.params.duration:
             status = False
 
         self.apogee = self.rocket.altitude

@@ -64,11 +64,12 @@ class Params(object):
 
     # Simulation params
     timestep                = 0.1  # [s]
+    duration                = 6000 # [s] how long to run the simulation
     theta                   = rotation_angle(timestep)
     mdo                     = True
     output                  = True
-    recover                 = True
-    circularize             = False
+    recover                 = False
+    circularize             = True
     geo                     = False
     sso                     = True
 
@@ -78,7 +79,7 @@ class Params(object):
     # Launch site params [lat, lon, altitude, pitchover, max payload]
     coordinates = {
         'ksc-lp39a'         : [28.60785665, -80.60427205,    4.0],
-        'psc-kodiak'        : [57.43498194, -152.34169916,  30.0, 1.4539255198029344],
+        'psc-kodiak'        : [57.43498194, -152.34169916,  30.0, 0.7950279674847444],
         'vandenberg'        : [34.73447732, -120.59637824,  88.0],
         'camden'            : [30.95389287, -81.53155851,    6.0, 1.243825254857131, 121.5],
         'baikonur'          : [45.92030866,  63.34220224,  105.0],
@@ -107,5 +108,5 @@ class Params(object):
     trajectory_params = {
         'pitchover_angle'   : pitchover_angle,      # [deg]
         'coast_time'        : 5.0,                  # [s]
-        'pitchover'         : [15.0, 20.0]          # [s] T+ start / end pitchover
+        'pitchover'         : [10.0, 25.0]          # [s] T+ start / end pitchover
     }

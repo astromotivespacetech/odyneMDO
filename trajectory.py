@@ -1,11 +1,12 @@
 import copy
 import math
+import orbital
 from functions      import *
 from simulation     import Simulation
 from vector3d       import Vector3D
 # from params         import Params
 from pyquaternion   import Quaternion
-from keplerian      import keplerian_orbit
+from keplerian      import keplerian_orbit, keplerian_elements
 from earth          import Earth
 
 
@@ -18,14 +19,14 @@ class Trajectory(object):
         self.pitchover           = self.params.trajectory_params['pitchover']
         self.rotation_axis       = self.calc_rotation_axis()
         self.intermediates       = int((self.pitchover[1]-self.pitchover[0]) * (1/self.params.timestep))
-        self.max_iterations      = 20
+        self.max_iterations      = 50
 
         if self.params.optimized:
             self.pitchover_angle     = self.params.trajectory_params['pitchover_angle']
             self.coast_time          = self.params.trajectory_params['coast_time']
             self.calc_pitchover()
         else:
-            self.pitchover_angle     = 1.0
+            self.pitchover_angle     = 0.0
             self.coast_time          = 5.0
 
 
@@ -60,30 +61,29 @@ class Trajectory(object):
 
     def optimize_pitchover(self):
 
-        injection                = copy.copy(self.params.injection)*1000
-        target_perigee           = injection*1000
-        target_apogee            = copy.copy(self.params.apogee)*1000
-        E_r                      = Earth.radius_equator
+        injection                = orbital.utilities.radius_from_altitude( copy.copy(self.params.injection)*1000, body=orbital.earth)
+        target_perigee           = injection
+        target_apogee            = orbital.utilities.radius_from_altitude( copy.copy(self.params.apogee)*1000, body=orbital.earth)
         count                    = 0
-        gain                     = 0.5
-        tau_i                    = 10.0
+        gain                     = 0.1
+        tau_i                    = 0.01
         error                    = 1.0
         integral_error           = 0.0
 
-        while abs(error) > math.pi * 0.5 * 0.01:
+        while abs(error) > math.pi * 0.5 * 0.001:
 
             self.calc_pitchover()
             rocket               = copy.deepcopy(self.rocket)
             simulation           = Simulation(rocket, self)
             simulation.run_simulation()
 
-            k                    = simulation.keplerian
-            perigee              = (k[0] - E_r)
-            apogee               = (k[1] - E_r)
-            peri_norm            = normalize(perigee, -E_r, target_perigee)
+            k                    = keplerian_elements(rocket.position, rocket.velocity)
+            apogee               = k[0]
+            perigee              = k[1]
+            peri_norm            = normalize(perigee, 0, target_perigee)
             apo_norm             = normalize(apogee, 0.0, target_apogee)
             apo_norm             = constrain(apo_norm, 0.0, 1.0)
-            alt_norm             = normalize(rocket.altitude, 0.0, injection)
+            alt_norm             = normalize(rocket.position.magnitude(), 0.0, injection)
 
             # get the final injection angle
             horizontal           = math.pi * 0.5
@@ -95,7 +95,11 @@ class Trajectory(object):
             # if the rocket's injection altitude is greater than 130km, continue increasing the pitchover angle
             # so that it approaches a tangential injection angle
             if alt_norm >= 1.0:
-                error = diff_norm
+
+                if apo_norm < 1.0:
+                    error = -diff_norm
+                else:
+                    error = diff_norm
 
             # if the rocket's injection altitude is below 130km, this could be for a number of reasons
             else:
@@ -118,8 +122,11 @@ class Trajectory(object):
                         error = diff_norm
 
 
-            self.pitchover_angle += gain * error + (gain / tau_i) * integral_error
+            self.pitchover_angle += gain * error + tau_i * integral_error
             self.pitchover_angle = constrain(self.pitchover_angle, 0.0, 10.0)
+
+            perigee                         = orbital.utilities.altitude_from_radius(perigee, body=orbital.earth)
+            apogee                          = orbital.utilities.altitude_from_radius(apogee, body=orbital.earth)
 
             print("Error: %.2f, Pitchover: %.2f, apogee: %.2f, perigee: %.2f, altitude: %.2f, angle: %.2f" % \
                 (error, self.pitchover_angle, apogee, perigee, rocket.altitude, injection_angle))
@@ -142,7 +149,7 @@ class Trajectory(object):
         circularize              = self.rocket.params.circularize
         geo                      = self.rocket.params.geo
         log                      = True
-        
+
         self.simulation.run_simulation(mdo, log, output, recover, circularize, geo)
 
 
