@@ -64,7 +64,7 @@ class Params(object):
 
     # Simulation params
     timestep                = 0.1  # [s]
-    duration                = 6000 # [s] how long to run the simulation
+    duration                = 12000 # [s] how long to run the simulation
     theta                   = rotation_angle(timestep)
     mdo                     = True
     output                  = True
@@ -100,11 +100,11 @@ class Params(object):
     max_payload             = coordinates[launch_site][4] if len(coordinates[launch_site]) > 4 else payload    # [kg]
     direction               = 'south'
     injection               = 130 # [km]
-    apogee                  = 500 # [km]
-    perigee                 = 500 # [km]
+    apogee                  = 480 # [km]
+    perigee                 = 480 # [km]
     inclination             = sun_syncronous_inclination(apogee) if sso == True else 90.0
     launch_azimuth          = calc_launch_azimuth(latitude, inclination, injection, apogee, direction) # [deg]
-    optimized               = True
+    optimized               = False
     trajectory_params = {
         'pitchover_angle'   : pitchover_angle,      # [deg]
         'coast_time'        : 5.0,                  # [s]

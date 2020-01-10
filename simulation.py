@@ -688,6 +688,7 @@ class Simulation(object):
         if self.circ_burn == True and self.rocket.velocity.magnitude() >= self.target_orbit.velocity_apogee:
             self.rocket.stages[self.stage].throttle = 0.0
             self.circ_burn = -1
+            status = False
             # print(self.rocket.velocity.magnitude(), self.target_orbit.velocity_apogee)
             self.keplerian                  = keplerian_orbit(self.rocket.position, self.rocket.velocity)
             # print(self.rocket.altitude, self.keplerian[1] - Earth.radius_equator)

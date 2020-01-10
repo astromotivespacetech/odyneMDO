@@ -81,23 +81,44 @@ class FlightRecorder(object):
             #     lat, lon, alt = Earth.get_lat_lon(f_pos_rel)
             #     self.fairing_trajectory.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),round(alt))])
 
-            if elapsed >= 10.0:
+            if rocket.altitude >= 100000:
+
                 # ground track width
-                d, theta     = calc_distance_to_horizon(pos_rel)
                 A            = rocket.velocity_rel
                 B            = pos_rel.unit().inverse()
                 proj         = A.dot(B) / B.dot(B)
                 B.scale(proj)
                 axis         = A.difference(B)
-                q1           = Quaternion(axis=axis.points, radians=math.pi*0.5)
-                q2           = Quaternion(axis=axis.points, radians=-math.pi*0.5)
+
+                ang         = 0
+
+                d, theta, x, y, angle, m, new, _0 = calc_distance_to_horizon(pos_rel, ang)
+
+                print(math.pi-theta)
+                KP          = math.pi-theta
+
+                err         = 15 - math.degrees(angle)
+                ang         += KP * err
+
+                while abs(err) > 1e-4:
+                    d, theta, x, y, angle, m, new, _0 = calc_distance_to_horizon(pos_rel, ang)
+                    err      = 15 - math.degrees(angle)
+                    ang      += KP * err
+
+
+                # q1           = Quaternion(axis=axis.points, radians=theta*0.5)
+                # q2           = Quaternion(axis=axis.points, radians=-theta*0.5)
+                q1           = Quaternion(axis=axis.points, radians=_0)
+                q2           = Quaternion(axis=axis.points, radians=-_0)
                 w            = pos_rel.unit().inverse()
                 w_prime1     = q1.rotate(w.points)
                 w_prime2     = q2.rotate(w.points)
                 vec1         = Vector3D(w_prime1)
                 vec2         = Vector3D(w_prime2)
-                vec1.scale(d)
-                vec2.scale(d)
+                # vec1.scale(d)
+                # vec2.scale(d)
+                vec1.scale(m)
+                vec2.scale(m)
                 vec1.add(pos_rel)
                 vec2.add(pos_rel)
 
@@ -107,7 +128,7 @@ class FlightRecorder(object):
                 self.ground_track2.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),0)])
 
             # self.data.loc[self.counter/10] = data
-            self.data.loc[self.counter] = data
+            # self.data.loc[self.counter] = data
 
         if elapsed > 0.0:
             self.counter += 1

@@ -250,7 +250,7 @@ if __name__ == '__main__':
     odyne = Rocket(Params)
     odyne.modify_payload(100.0)
     # # # odyne.get_specs(txt=True)
-    # odyne.trajectory.optimize_pitchover()
+    odyne.trajectory.optimize_pitchover()
     odyne.trajectory.simulate()
     odyne.flight_recorder.save_kml()
     # odyne.flight_recorder.graph('Altitude')           # Altitude, Velocity, Drag, Acceleration, Propellant, Downrange
