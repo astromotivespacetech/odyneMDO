@@ -328,6 +328,7 @@ class Simulation(object):
             self.launch_hold[0] += self.dt
         else:
             self.elapsed += self.dt
+            self.elapsed = round(self.elapsed,1)
             self.update_rocket_orientation()
 
             # the acceleration that should always be applied to the second stage
@@ -414,7 +415,11 @@ class Simulation(object):
         if self.elapsed < self.rocket.trajectory.pitchover[0]:
             self.rocket.orientation = self.rocket.position.unit()
 
-        elif self.elapsed >= self.rocket.trajectory.pitchover[0] and self.elapsed < self.rocket.trajectory.pitchover[1]:
+        elif self.elapsed == self.rocket.trajectory.pitchover[0]:
+            self.rocket.orientation = self.rocket.position.unit()
+            self.trajectory.calc_pitchover()
+
+        elif self.elapsed > self.rocket.trajectory.pitchover[0] and self.elapsed <= self.rocket.trajectory.pitchover[1]:
             vector               = self.trajectory.pitchover_maneuver
             i                    = int((self.elapsed - self.rocket.trajectory.pitchover[0]) * (1/self.dt))
             self.rocket.orientation.update(vector[i])

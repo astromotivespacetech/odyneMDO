@@ -20,14 +20,13 @@ class Trajectory(object):
         self.rotation_axis       = self.calc_rotation_axis()
         self.intermediates       = int((self.pitchover[1]-self.pitchover[0]) * (1/self.params.timestep))
         self.max_iterations      = 50
+        self.coast_time          = self.params.trajectory_params['coast_time']
 
         if self.params.optimized:
             self.pitchover_angle     = self.params.trajectory_params['pitchover_angle']
-            self.coast_time          = self.params.trajectory_params['coast_time']
             self.calc_pitchover()
         else:
             self.pitchover_angle     = 0.0
-            self.coast_time          = 5.0
 
 
 
@@ -35,7 +34,7 @@ class Trajectory(object):
     def calc_rotation_axis(self):
 
         q                        = Quaternion(axis=self.rocket.position.points, degrees=-self.params.launch_azimuth)
-        v                        = self.rocket.velocity.points
+        v                        = self.rocket.init_velocity.points
         v_prime                  = q.rotate(v)
 
         return Vector3D(v_prime)
@@ -46,6 +45,7 @@ class Trajectory(object):
     def calc_pitchover(self):
 
         self.pitchover_maneuver  = []
+        self.rotation_axis       = self.calc_rotation_axis()
         v                        = self.rocket.orientation.points
         q0                       = Quaternion(axis=self.rotation_axis.points, degrees=0.0)
         q1                       = Quaternion(axis=self.rotation_axis.points, degrees=-self.pitchover_angle)
@@ -65,14 +65,13 @@ class Trajectory(object):
         target_perigee           = injection
         target_apogee            = orbital.utilities.radius_from_altitude( copy.copy(self.params.apogee)*1000, body=orbital.earth)
         count                    = 0
-        gain                     = 0.1
+        gain                     = 0.15
         tau_i                    = 0.01
         error                    = 1.0
         integral_error           = 0.0
 
         while abs(error) > math.pi * 0.5 * 0.001:
 
-            self.calc_pitchover()
             rocket               = copy.deepcopy(self.rocket)
             simulation           = Simulation(rocket, self)
             simulation.run_simulation()

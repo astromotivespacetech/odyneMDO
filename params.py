@@ -19,15 +19,15 @@ class Params(object):
 
     # Rocket params
     stages                  = 2
-    diameter                = 1.05      # [m]
+    diameter                = 1.0      # [m]
     thrust_GTOW             = 1.2
     mass_ratios             = [16.485540238212664,  6.494060087323651]
     payload                 = 124.50402725306657   # [kg]
 
     # Stage params
     engine                  = Hadley
-    engines                 = [4, 1]
-    throttle                = [1.0, 0.7]
+    engines                 = [3, 1]
+    throttle                = [1.0, 0.6]
     cores                   = [1, 1]
 
     # interstage
@@ -64,17 +64,18 @@ class Params(object):
 
     # Simulation params
     timestep                = 0.1  # [s]
-    duration                = 12000 # [s] how long to run the simulation
+    duration                = 6000 # [s] how long to run the simulation
     theta                   = rotation_angle(timestep)
     mdo                     = True
     output                  = True
     recover                 = False
     circularize             = True
     geo                     = False
-    sso                     = True
+    sso                     = False
 
     # Launch site
     launch_site             = 'psc-kodiak'
+    # launch_site             = 'default'
 
     # Launch site params [lat, lon, altitude, pitchover, max payload]
     coordinates = {
@@ -90,6 +91,8 @@ class Params(object):
         'alcantara'         : [-2.31738967, -44.36801459,    1.0, 1.2895154691987594, 190.0],
         'mid-atlantic-lp0a' : [37.83393787, -75.48771441,    1.0],
         'mid-atlantic-lp0b' : [37.8311811,  -75.49133277,    1.0, 1.2642700281640897, 155.5],
+        'shetland'          : [60.817481, -0.762236, 0.0],
+        'default'           : [0.1,0.0,0.0]
     }
 
     # Trajectory params
@@ -102,11 +105,12 @@ class Params(object):
     injection               = 130 # [km]
     apogee                  = 485 # [km]
     perigee                 = 485 # [km]
-    inclination             = sun_syncronous_inclination(apogee) if sso == True else 110.0
+    inclination             = sun_syncronous_inclination(apogee) if sso == True else 59.6
     launch_azimuth          = calc_launch_azimuth(latitude, inclination, injection, apogee, direction) # [deg]
-    optimized               = True
+    launch_azimuth          = 220.0
+    optimized               = False
     trajectory_params = {
         'pitchover_angle'   : pitchover_angle,      # [deg]
         'coast_time'        : 5.0,                  # [s]
-        'pitchover'         : [10.0, 25.0]          # [s] T+ start / end pitchover
+        'pitchover'         : [15.0, 16.0]          # [s] T+ start / end pitchover
     }

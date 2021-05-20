@@ -80,7 +80,7 @@ class Earth(object):
     def velocity_at_latitude(cls, lat):
         ''' Given a latitude in degrees, returns the tangential velocity at sea-level. '''
 
-        return Earth.radius_equator * Earth.omega * math.cos(math.radians(lat))
+        return Earth.radius * Earth.omega * math.cos(math.radians(lat))
 
 
 

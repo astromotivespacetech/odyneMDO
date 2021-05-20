@@ -66,7 +66,16 @@ class Hadley(object):
 
 
 
-
+    
+    
+    
+class UpperStageEngine(object): 
+    
+    mass = lbm2kilogram(20)        # [kg]
+    thrust = lbf2newton(1000)
+    Isp = 300        
+    flow_rate =  thrust / (Isp * g_earth)
+    
 
 
 if __name__ == "__main__":
@@ -75,22 +84,25 @@ if __name__ == "__main__":
     sum_start = sum([Hadley.Start['Kerosene'],Hadley.Start['LOx'],Hadley.Start['N2']])
     sum_shutdown = sum([Hadley.Shutdown['Kerosene'],Hadley.Shutdown['LOx'],Hadley.Shutdown['N2']])
 
-    print("Chill\n")
-    print("Kerosene: %.2f" % Hadley.Chill['Kerosene'])
-    print("LOx: %.2f" % Hadley.Chill['LOx'])
-    print("N2: %.2f" % Hadley.Chill['N2'])
-    print("Total: %.2f\n" % sum_chill)
-
-    print("Start\n")
-    print("Kerosene: %.2f" % Hadley.Start['Kerosene'])
-    print("LOx: %.2f" % Hadley.Start['LOx'])
-    print("N2: %.2f" % Hadley.Start['N2'])
-    print("Total: %.2f\n" % sum_start)
-
-    print("Shutdown\n")
-    print("Kerosene: %.2f" % Hadley.Shutdown['Kerosene'])
-    print("LOx: %.2f" % Hadley.Shutdown['LOx'])
-    print("N2: %.2f" % Hadley.Shutdown['N2'])
-    print("Total: %.2f\n" % sum_shutdown)
-
-    print("Total Engine: %.2f" % sum([sum_chill + sum_start + sum_shutdown]))
+#    print("Chill\n")
+#    print("Kerosene: %.2f" % Hadley.Chill['Kerosene'])
+#    print("LOx: %.2f" % Hadley.Chill['LOx'])
+#    print("N2: %.2f" % Hadley.Chill['N2'])
+#    print("Total: %.2f\n" % sum_chill)
+#
+#    print("Start\n")
+#    print("Kerosene: %.2f" % Hadley.Start['Kerosene'])
+#    print("LOx: %.2f" % Hadley.Start['LOx'])
+#    print("N2: %.2f" % Hadley.Start['N2'])
+#    print("Total: %.2f\n" % sum_start)
+#
+#    print("Shutdown\n")
+#    print("Kerosene: %.2f" % Hadley.Shutdown['Kerosene'])
+#    print("LOx: %.2f" % Hadley.Shutdown['LOx'])
+#    print("N2: %.2f" % Hadley.Shutdown['N2'])
+#    print("Total: %.2f\n" % sum_shutdown)
+#
+#    print("Total Engine: %.2f" % sum([sum_chill + sum_start + sum_shutdown]))
+    
+    
+    print(UpperStageEngine.flow_rate)

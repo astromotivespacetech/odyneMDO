@@ -14,6 +14,7 @@ from trajectory         import Trajectory
 from flight_recorder    import FlightRecorder
 from visualization      import Render3D
 from dv                 import calc_dv
+from rotation_matrix    import rotate_Z
 
 class Rocket(object):
 
@@ -29,6 +30,7 @@ class Rocket(object):
         self.position           = Earth.get_cartesian(params.latitude, params.longitude, params.altitude)
         self.position_rel       = self.position.copy()
         self.velocity           = self.calc_initial_velocity(params.latitude)
+        self.init_velocity      = self.velocity.copy()
         self.velocity_rel       = Vector3D([0,0,0])
         self.init_position      = self.position.copy()
 
@@ -61,7 +63,7 @@ class Rocket(object):
 
     def calc_initial_velocity(self, lat):
 
-        speed                   = Earth.surface_speed(self.position)
+        speed                   = Earth.velocity_at_latitude(self.params.latitude)
         x                       = self.position.x
         y                       = self.position.y
 
@@ -114,16 +116,16 @@ class Rocket(object):
 
     def get_current_state(self):
 
-        state           = self.stages[-1].state.vector
+        state               = self.stages[-1].state.vector
         self.position.update([state[0].p, state[1].p, state[2].p])
         self.velocity.update([state[0].v, state[1].v, state[2].v])
 
-        state_rel       = self.stages[-1].state_rel.vector
-        self.position_rel.update([state_rel[0].p, state_rel[1].p, state_rel[2].p])
+        state_rel           = self.stages[-1].state_rel.vector
+        self.position_rel   = rotate_Z(-self.params.theta * self.flight_recorder.counter, self.position)
         self.velocity_rel.update([state_rel[0].v, state_rel[1].v, state_rel[2].v])
 
-        self.altitude   = orbital.utilities.altitude_from_radius(self.position.magnitude(), body=orbital.earth)
-        self.downrange  = self.init_position.angle(self.position_rel) * Earth.radius_equator
+        self.altitude       = Earth.get_lat_lon(self.position)[2]
+        self.downrange      = self.init_position.angle(self.position_rel) * Earth.radius_equator
 
 
 
@@ -248,9 +250,9 @@ if __name__ == '__main__':
     # odyne = compute_max_payload()
 
     odyne = Rocket(Params)
-    odyne.modify_payload(100.0)
+    odyne.modify_payload(95.0)
     # # # odyne.get_specs(txt=True)
-    # odyne.trajectory.optimize_pitchover()
+    odyne.trajectory.optimize_pitchover()
     odyne.trajectory.simulate()
     odyne.flight_recorder.save_kml()
     # odyne.flight_recorder.graph('Altitude')           # Altitude, Velocity, Drag, Acceleration, Propellant, Downrange

@@ -39,12 +39,13 @@ class FlightRecorder(object):
 
     def record_data(self, elapsed, acceleration, rocket, drag):
 
+        # pos_rel      = rotate_Z(-rocket.params.theta * self.counter, rocket.position)
+        pos_rel      = rocket.position_rel
         stage1       = rocket.stages[0]
         stage2       = rocket.stages[1]
         s1           = stage1.state.vector
         s1_pos       = Vector3D([s1[0].p, s1[1].p, s1[2].p])
         s1_pos_rel   = rotate_Z(-rocket.params.theta * self.counter, s1_pos)
-        pos_rel      = rotate_Z(-rocket.params.theta * self.counter, rocket.position)
         f            = rocket.fairing.state.vector
         f_pos        = Vector3D([f[0].p, f[1].p, f[2].p])
         f_pos_rel    = rotate_Z(-rocket.params.theta * self.counter, f_pos)
@@ -70,14 +71,12 @@ class FlightRecorder(object):
         if self.counter % 10.0 == 0:
 
 
-            if elapsed>6000:
+            if elapsed>000:
                 print(elapsed)
 
                 lat, lon, alt = Earth.get_lat_lon(pos_rel)
-                # lat, lon, alt = Earth.get_lat_lon(rocket.position)
-
-                self.trajectory.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),round(rocket.altitude))])
                 self.ground_track.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),0)])
+                self.trajectory.coords.addcoordinates([(math.degrees(lon),math.degrees(lat),round(rocket.altitude))])
 
                 # if rocket.params.recover:
                 #     lat, lon, alt = Earth.get_lat_lon(s1_pos_rel)
@@ -108,9 +107,6 @@ class FlightRecorder(object):
                         err      = 0 - math.degrees(angle)
                         ang      += KP * err
 
-
-                    # q1           = Quaternion(axis=axis.points, radians=theta*0.5)
-                    # q2           = Quaternion(axis=axis.points, radians=-theta*0.5)
                     q1           = Quaternion(axis=axis.points, radians=_0)
                     q2           = Quaternion(axis=axis.points, radians=-_0)
                     w            = pos_rel.unit().inverse()
@@ -118,8 +114,6 @@ class FlightRecorder(object):
                     w_prime2     = q2.rotate(w.points)
                     vec1         = Vector3D(w_prime1)
                     vec2         = Vector3D(w_prime2)
-                    # vec1.scale(d)
-                    # vec2.scale(d)
                     vec1.scale(m)
                     vec2.scale(m)
                     vec1.add(pos_rel)
